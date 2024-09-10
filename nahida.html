@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Información de Nahida</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('https://static1-es.millenium.gg/articles/4/32/88/4/@/152582-rito-de-la-linterna-article_cover_bd-1.jpg');
+            background-size: cover;
+            color: white;
+        }
+        .container {
+            margin: 50px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            margin-right: 10px;
+            border-radius: 5px;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Información del Personaje Nahida</h1>
+        <form id="uidForm">
+            <label for="uid">Ingrese UID del jugador:</label>
+            <input type="text" id="uid" name="uid" required>
+            <input type="submit" value="Obtener Información">
+        </form>
+        <div id="characterInfo">
+            <!-- La información del personaje se mostrará aquí -->
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('uidForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const uid = document.getElementById('uid').value;
+            fetchCharacterData(uid);
+        });
+
+        function fetchCharacterData(uid) {
+            fetch(`http://localhost:8080/https://enka.network/api/uid/${uid}`)
+                .then(response => response.json())
+                .then(data => {
+                    const character = data.avatarInfoList.find(avatar => avatar.avatarId === 10000073);
+                    if (character) {
+                        displayCharacterInfo(character);
+                    } else {
+                        document.getElementById('characterInfo').innerHTML = "<p>Nahida no está presente en el perfil del jugador.</p>";
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al obtener los datos:', error);
+                    document.getElementById('characterInfo').innerHTML = "<p>Error al obtener los datos.</p>";
+                });
+        }
+
+        function displayCharacterInfo(character) {
+            const stats = character.fightPropMap;
+
+            // Cálculo de vida total (HP)
+            const baseHP = stats["1"];
+            const flatHP = stats["2"];
+            const percentHP = stats["3"];
+            const totalHP = baseHP * (1 + percentHP) + flatHP;
+
+            // Cálculo de ataque total (ATK)
+            const baseATK = stats["4"];
+            const flatATK = stats["5"];
+            const percentATK = stats["6"];
+            const totalATK = baseATK * (1 + percentATK) + flatATK;
+
+            const info = `
+                <h2>Nahida - Nivel ${character.propMap["4001"].val}</h2>
+                <p><strong>Vida Total:</strong> ${totalHP.toFixed(2)}</p>
+                <p><strong>Ataque Total:</strong> ${totalATK.toFixed(2)}</p>
+                <p><strong>Defensa:</strong> ${stats["7"]}</p>
+                <p><strong>Maestría Elemental:</strong> ${stats["28"]}</p>
+                <p><strong>Probabilidad Crítica:</strong> ${(stats["20"] * 100).toFixed(2)}%</p>
+                <p><strong>Daño Crítico:</strong> ${(stats["22"] * 100).toFixed(2)}%</p>
+                <p><strong>Bono de Daño Elemental Dendro:</strong> ${(stats["43"] * 100).toFixed(2)}%</p>
+            `;
+            document.getElementById('characterInfo').innerHTML = info;
+        }
+    </script>
+</body>
+</html>
+
