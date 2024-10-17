@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Información de Personaje</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('https://static1-es.millenium.gg/articles/4/32/88/4/@/152582-rito-de-la-linterna-article_cover_bd-1.jpg');
+            background-size: cover;
+            color: white;
+        }
+        .menu {
+            background-color: #2c3e50;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .menu a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 18px;
+        }
+        .menu a:hover {
+            color: #e74c3c;
+        }
+        .container {
+            margin: 50px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            display: flex;
+        }
+        .stats {
+            flex: 1;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+            margin-right: 20px;
+        }
+        .attacks {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            width: 600px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            margin-right: 10px;
+            border-radius: 5px;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .content {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu">
+        <a href="personajes.html">Personajes</a>
+        <a href="PersonajesUsuario.html">Mis personajes</a>
+        <a href="calculomanual.html">Calculadora</a>
+    </div>
+    <div class="container">
+        <div class="content">
+            <h1>Información del Personaje</h1>
+            <form id="uidForm">
+                <label for="uid">Ingrese UID del jugador:</label>
+                <input type="text" id="uid" name="uid" required>
+                <input type="submit" value="Obtener Información">
+            </form>
+        
+            <div id="characterInfo" class="stats">
+                <!-- La información del personaje se mostrará aquí -->
+            </div>
+        </div>
+        <div class="content">
+            <div id="basicAttacks" class="attacks">
+                <h2>Ataque Básico</h2>
+            </div>
+            <div id="elementalSkill" class="attacks">
+                <h2>Habilidad Elemental</h2>
+            </div>
+            <div id="ultimateSkill" class="attacks">
+                <h2>Habilidad Definitiva</h2>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const characterId = urlParams.get('id'); // Ahora obtienes characterId
+
+        // Verifica si el UID está almacenado en localStorage
+        window.onload = function() {
+            const storedUID = localStorage.getItem('genshinUID');
+            if (storedUID) {
+                document.getElementById('uid').value = storedUID; 
+                fetchCharacterData(storedUID); 
+            }
+        };
+
+        document.getElementById('uidForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const uid = document.getElementById('uid').value;
+            fetchCharacterData(uid);
+            localStorage.setItem('genshinUID', uid);
+        });
+
+        function fetchCharacterData(uid) {
+            fetch(`http://localhost:8080/https://enka.network/api/uid/${uid}`)
+                .then(response => response.json())
+                .then(data => {
+                    const character = data.avatarInfoList.find(avatar => avatar.avatarId === parseInt(characterId));
+                    if (character) {
+                        displayCharacterInfo(character);
+                        const stats = character.fightPropMap;
+
+                        // Asegúrate de que los valores sean numéricos
+                        const baseATK = Number(stats["4"]) || 0;   // Base ATK
+                        const flatATK = Number(stats["5"]) || 0;    // Flat ATK
+                        const percentATK = Number(stats["6"]) || 0;  // Percent ATK
+
+                        const totalATK = baseATK * (1 + percentATK) + flatATK;  // Cálculo de total ATK
+                        console.log(`Total ATK: ${totalATK}`); // Verifica el resultado
+
+                        // Llamada para calcular y mostrar los ataques básicos
+                        calculateBasicAttacks(character, totalATK, stats); // Pasa el objeto character aquí
+                    } else {
+                        document.getElementById('characterInfo').innerHTML = "<p>El personaje no está presente en el perfil del jugador.</p>";
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al obtener los datos:', error);
+                    document.getElementById('characterInfo').innerHTML = "<p>Error al obtener los datos.</p>";
+                });
+        }
+
+
+
+        function displayCharacterInfo(character) {
+            const stats = character.fightPropMap;
+
+            const baseHP = stats["1"];
+            const flatHP = stats["2"];
+            const percentHP = stats["3"];
+            const totalHP = baseHP * (1 + percentHP) + flatHP;
+
+            const baseATK = stats["4"];
+            const flatATK = stats["5"];
+            const percentATK = stats["6"];
+            const totalATK = baseATK * (1 + percentATK) + flatATK;
+
+            // Asegúrate de que stats["4001"] esté definido antes de acceder a val
+            const characterLevel = (stats["4001"] && stats["4001"].val) ? stats["4001"].val : 1; // Valor por defecto
+            
+            
+            const info = `
+                <h2>Nivel ${character.propMap["4001"].val}</h2>
+                <p><strong>Vida Total:</strong> ${totalHP.toFixed(2)}</p>
+                <p><strong>Ataque Total:</strong> ${totalATK.toFixed(2)}</p>
+                <p><strong>Defensa:</strong> ${stats["7"]}</p>
+                <p><strong>Maestría Elemental:</strong> ${stats["28"]}</p>
+                <p><strong>Probabilidad Crítica:</strong> ${(stats["20"] * 100).toFixed(2)}%</p>
+                <p><strong>Daño Crítico:</strong> ${(stats["22"] * 100).toFixed(2)}%</p>
+                <p><strong>Bono de Daño Elemental:</strong> ${(stats["43"] * 100).toFixed(2)}%</p>
+                <p><strong>Recarga de Energía:</strong> ${(stats["23"] * 100).toFixed(2)}%</p>
+            `;
+            document.getElementById('characterInfo').innerHTML = info;
+        }
+
+
+        function calculateBasicAttacks(character, totalATK, stats) {
+            // Asegúrate de que stats["4001"] esté definido antes de usarlo
+            const characterLevel = (stats["4001"] && stats["4001"].val) ? stats["4001"].val : 90; // Valor por defecto si no se encuentra
+
+            // Obtener el nivel del ataque desde skillLevelMap
+            const skillLevelMap = character.skillLevelMap; // Accede a skillLevelMap desde el objeto character
+            const skillLevel = skillLevelMap["10731"]; // Usa "10731" para el nivel deseado
+            
+            // Verifica si skillLevel es undefined
+            if (skillLevel === undefined) {
+                console.error('Nivel de habilidad no encontrado para 10731.');
+                return; // Salir si no se encuentra
+            }
+
+            // Obtener los multiplicadores desde la base de datos y enviar skillLevel como parámetro
+            fetch(`http://localhost:3000/basicos/${character.avatarId}?level=${skillLevel}`)
+                .then(response => response.json())
+                .then(attacks => {
+                    const bonusDamage = stats["43"] || 0; // Bono de daño
+                    const critRate = stats["20"] || 0; // Probabilidad crítica
+                    const critDamage = stats["22"] || 0; // Daño crítico
+                    const enemyResistance = 10; // Asumiendo resistencia elemental del 10%
+                    const enemyLevel = 82; // Nivel enemigo
+
+                    let attackResults = '';
+
+                    attacks.forEach(attack => {
+                        const multiplier = parseFloat(attack.multiplier); // Asegúrate de que el multiplicador sea un número
+                        if (isNaN(multiplier)) {
+                            console.error(`Multiplicador inválido para el ataque ${attack.attack_name}: ${attack.multiplier}`);
+                            return; // Salir de la iteración si el multiplicador es inválido
+                        }
+
+                        // Asegúrate que totalATK es un número
+                        if (isNaN(totalATK)) {
+                            console.error(`TotalATK no es un número: ${totalATK}`);
+                            return; // Salir de la iteración si totalATK es inválido
+                        }
+
+                        const damageResult = calculateDamage(totalATK, multiplier, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel);
+                        attackResults += `<p>Daño del ${attack.attack_name}: ${damageResult.normal} / Crítico: ${damageResult.crit}</p>`;
+                    });
+
+                    document.getElementById('basicAttacks').innerHTML = `
+                        <h2>Ataques Básicos</h2>
+                        ${attackResults}
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error al obtener los multiplicadores:', error);
+                });
+        }
+
+
+
+
+        function calculateDamage(totalATK, multiplier, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel) {
+            const damageBase = totalATK * multiplier * (1 + bonusDamage);
+            const elementalResistance = (1 - enemyResistance / 100);
+            const resistanceFactor = (100 + characterLevel) / ((100 + characterLevel) + (100 + enemyLevel));
+            const normalDamage = (damageBase * elementalResistance) * resistanceFactor;
+            const critDamageResult = normalDamage * (1 + critRate * critDamage);
+
+            return {
+                normal: normalDamage.toFixed(2),
+                crit: critDamageResult.toFixed(2)
+            };
+        }
+
+    </script>
+</body>
+</html>
