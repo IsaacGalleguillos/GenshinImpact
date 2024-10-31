@@ -104,9 +104,8 @@
     
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const characterId = urlParams.get('id'); // Ahora obtienes characterId
+        const characterId = urlParams.get('id'); 
 
-        // Verifica si el UID está almacenado en localStorage
         window.onload = function() {
             const storedUID = localStorage.getItem('genshinUID');
             if (storedUID) {
@@ -131,16 +130,15 @@
                         displayCharacterInfo(character);
                         const stats = character.fightPropMap;
 
-                        // Asegúrate de que los valores sean numéricos
-                        const baseATK = Number(stats["4"]) || 0;   // Base ATK
-                        const flatATK = Number(stats["5"]) || 0;    // Flat ATK
-                        const percentATK = Number(stats["6"]) || 0;  // Percent ATK
+                        const baseATK = Number(stats["4"]) || 0;   
+                        const flatATK = Number(stats["5"]) || 0;    
+                        const percentATK = Number(stats["6"]) || 0;  
 
-                        const totalATK = baseATK * (1 + percentATK) + flatATK;  // Cálculo de total ATK
-                        console.log(`Total ATK: ${totalATK}`); // Verifica el resultado
+                        const totalATK = baseATK * (1 + percentATK) + flatATK;  
+                        console.log(`Total ATK: ${totalATK}`); 
 
-                        // Llamada para calcular y mostrar los ataques básicos
-                        calculateBasicAttacks(character, totalATK, stats); // Pasa el objeto character aquí
+                        calculateBasicAttacks(character, totalATK, stats);
+                        calculateElementalSkill(character, totalATK, stats);
                     } else {
                         document.getElementById('characterInfo').innerHTML = "<p>El personaje no está presente en el perfil del jugador.</p>";
                     }
@@ -150,8 +148,6 @@
                     document.getElementById('characterInfo').innerHTML = "<p>Error al obtener los datos.</p>";
                 });
         }
-
-
 
         function displayCharacterInfo(character) {
             const stats = character.fightPropMap;
@@ -166,9 +162,7 @@
             const percentATK = stats["6"];
             const totalATK = baseATK * (1 + percentATK) + flatATK;
 
-            // Asegúrate de que stats["4001"] esté definido antes de acceder a val
-            const characterLevel = (stats["4001"] && stats["4001"].val) ? stats["4001"].val : 1; // Valor por defecto
-            
+            const characterLevel = (stats["4001"] && stats["4001"].val) ? stats["4001"].val : 1; 
             
             const info = `
                 <h2>Nivel ${character.propMap["4001"].val}</h2>
@@ -184,48 +178,39 @@
             document.getElementById('characterInfo').innerHTML = info;
         }
 
-
         function calculateBasicAttacks(character, totalATK, stats) {
-            // Asegúrate de que stats["4001"] esté definido antes de usarlo
-            const characterLevel = (stats["4001"] && stats["4001"].val) ? stats["4001"].val : 90; // Valor por defecto si no se encuentra
+            const characterLevel = (stats["4001"] && stats["4001"].val) ? stats["4001"].val : 90; 
 
-            // Obtener el nivel del ataque desde skillLevelMap
-            const skillLevelMap = character.skillLevelMap; // Accede a skillLevelMap desde el objeto character
-            const skillLevel = skillLevelMap["10731"]; // Usa "10731" para el nivel deseado
+            const skillLevelMap = character.skillLevelMap; 
+            const skillLevel = skillLevelMap["10731"]; 
             
-            // Verifica si skillLevel es undefined
             if (skillLevel === undefined) {
                 console.error('Nivel de habilidad no encontrado para 10731.');
-                return; // Salir si no se encuentra
+                return; 
             }
 
-            // Obtener los multiplicadores desde la base de datos y enviar skillLevel como parámetro
-            fetch(`http://localhost:3000/basicos/${character.avatarId}?level=${skillLevel}`)
+            fetch(`http://localhost:3000/basicos/${character.avatarId}/10731?level=${skillLevel}`)
                 .then(response => response.json())
                 .then(attacks => {
-                    const bonusDamage = stats["43"] || 0; // Bono de daño
-                    const critRate = stats["20"] || 0; // Probabilidad crítica
-                    const critDamage = stats["22"] || 0; // Daño crítico
-                    const enemyResistance = 10; // Asumiendo resistencia elemental del 10%
-                    const enemyLevel = 82; // Nivel enemigo
+                    const bonusDamage = stats["43"] || 0; 
+                    const critRate = stats["20"] || 0; 
+                    const critDamage = stats["22"] || 0; 
+                    const enemyResistance = 10; 
+                    const enemyLevel = 82; 
 
                     let attackResults = '';
 
                     attacks.forEach(attack => {
-                        const multiplier = parseFloat(attack.multiplier); // Asegúrate de que el multiplicador sea un número
+                        const multiplier = parseFloat(attack.multiplier); 
                         if (isNaN(multiplier)) {
                             console.error(`Multiplicador inválido para el ataque ${attack.attack_name}: ${attack.multiplier}`);
-                            return; // Salir de la iteración si el multiplicador es inválido
+                            return;
                         }
 
-                        // Asegúrate que totalATK es un número
-                        if (isNaN(totalATK)) {
-                            console.error(`TotalATK no es un número: ${totalATK}`);
-                            return; // Salir de la iteración si totalATK es inválido
-                        }
+                        const damageResult = calculateDamage(totalATK, multiplier, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel, attack.formula);
 
-                        const damageResult = calculateDamage(totalATK, multiplier, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel);
-                        attackResults += `<p>Daño del ${attack.attack_name}: ${damageResult.normal} / Crítico: ${damageResult.crit}</p>`;
+
+                        attackResults += `<p>${attack.attack_name}: ${damageResult.normal} / Crítico: ${damageResult.crit}</p>`;
                     });
 
                     document.getElementById('basicAttacks').innerHTML = `
@@ -238,22 +223,128 @@
                 });
         }
 
+        function calculateElementalSkill(character, totalATK, stats) {
+            const characterLevel = (stats["4001"] && stats["4001"].val) ? stats["4001"].val : 90; 
+            let secondSkillLevel = 0;
+            const skillLevelMap = character.skillLevelMap;
+            let keys = Object.keys(skillLevelMap); // Obtener las claves del objeto
+            
+            // Asegúrate de que hay al menos dos claves
+            if (keys.length > 1) {
+                const secondKey = keys[1]; // Obtener la segunda clave
+                secondSkillLevel = skillLevelMap[secondKey]; // Acceder al segundo nivel de habilidad
+                
+                // Aquí puedes usar secondSkillLevel como quieras
+                console.log(secondSkillLevel); // Muestra el segundo skill level
+            } else {
+                console.error("No hay suficientes niveles de habilidad disponibles.");
+            }
+
+            if (secondSkillLevel === undefined) {
+                console.error('Nivel de habilidad no encontrado para 10732.');
+                return; 
+            }
+
+            console.log(`Calculando daño para habilidad elemental, skillLevel: ${secondSkillLevel}`);
+
+            fetch(`http://localhost:3000/elemental/${character.avatarId}/10732?level=${secondSkillLevel}`)
+                .then(response => response.json())
+                .then(attacks => {
+                    const bonusDamage = stats["43"] || 0; 
+                    const critRate = stats["20"] || 0; 
+                    const maestria = stats["28"] || 0; 
+                    const critDamage = stats["22"] || 0; 
+                    const enemyResistance = 10; 
+                    const enemyLevel = 82; 
+
+                    console.log(`bonusDamage: ${bonusDamage}, critRate: ${critRate}, critDamage: ${critDamage}`);
+
+                    let attackResults = '';
+
+                    attacks.forEach(attack => {
+                        const multiplier = parseFloat(attack.multiplier); 
+                        if (isNaN(multiplier)) {
+                            console.error(`Multiplicador inválido para el ataque ${attack.attack_name}: ${attack.multiplier}`);
+                            return;
+                        }
+
+                        const damageResult = calculateDamagenahida(totalATK, multiplier,maestria, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel, attack.formula);
+
+                        attackResults += `<p>${attack.attack_name}: ${damageResult.normal} / Crítico: ${damageResult.crit}</p>`;
+                    });
+
+                    document.getElementById('elementalSkill').innerHTML = `
+                        <h2>Habilidad Elemental</h2>
+                        ${attackResults}
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error al obtener los multiplicadores de la habilidad elemental:', error);
+                });
+        }
 
 
+        function calculateDamage(totalATK, multiplier, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel, formula) {
+            // Reemplaza las variables en la fórmula con sus valores correspondientes
+            const evalFormula = formula
+                .replace(/totalATK/g, totalATK)
+                .replace(/multiplier/g, multiplier)
+                .replace(/bonusDamage/g, bonusDamage)
+                .replace(/enemyResistance/g, enemyResistance)
+                .replace(/characterLevel/g, characterLevel)
+                .replace(/enemyLevel/g, enemyLevel);
 
-        function calculateDamage(totalATK, multiplier, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel) {
-            const damageBase = totalATK * multiplier * (1 + bonusDamage);
-            const elementalResistance = (1 - enemyResistance / 100);
-            const resistanceFactor = (100 + characterLevel) / ((100 + characterLevel) + (100 + enemyLevel));
-            const normalDamage = (damageBase * elementalResistance) * resistanceFactor;
-            const critDamageResult = normalDamage * (1 + critRate * critDamage);
+            // Evalúa la fórmula
+            const damage = eval(evalFormula);
 
+            //console.log(`Fórmula: ${evalFormula}`);
+            //console.log(`Total ATK: ${totalATK}, Multiplier: ${multiplier}, Bonus Damage: ${bonusDamage}, Enemy Resistance: ${enemyResistance}, Character Level: ${characterLevel}, Enemy Level: ${enemyLevel}`);
+            
+            const normalDamage = Math.max(0, damage);
+            const critMultiplier = 1 + critDamage;
+            const critDamageResult = Math.max(0, normalDamage * critMultiplier);
+            const roundedNormalDamage = Math.round(normalDamage);
+            const roundedCritDamageResult = Math.round(critDamageResult);
+            
             return {
-                normal: normalDamage.toFixed(2),
-                crit: critDamageResult.toFixed(2)
+                normal: roundedNormalDamage,
+                crit: roundedCritDamageResult
+            };
+        }
+        function calculateDamagenahida(totalATK, multiplier,maestria, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel, formula) {
+            // Reemplaza las variables en la fórmula con sus valores correspondientes
+            const evalFormula = formula
+                .replace(/totalATK/g, totalATK)
+                .replace(/multiplier/g, multiplier)
+                .replace(/maestria/g, maestria)
+                .replace(/bonusDamage/g, bonusDamage)
+                .replace(/enemyResistance/g, enemyResistance)
+                .replace(/characterLevel/g, characterLevel)
+                .replace(/enemyLevel/g, enemyLevel);
+
+            // Evalúa la fórmula
+            const damage = eval(evalFormula);
+
+            //console.log(`Fórmula: ${evalFormula}`);
+            //console.log(`Total ATK: ${totalATK}, Multiplier: ${multiplier}, Bonus Damage: ${bonusDamage}, Enemy Resistance: ${enemyResistance}, Character Level: ${characterLevel}, Enemy Level: ${enemyLevel}`);
+            
+            const normalDamage = Math.max(0, damage);
+            const critMultiplier = 1 + critDamage;
+            const critDamageResult = Math.max(0, normalDamage * critMultiplier);
+            const roundedNormalDamage = Math.round(normalDamage);
+            const roundedCritDamageResult = Math.round(critDamageResult);
+            
+            return {
+                normal: roundedNormalDamage,
+                crit: roundedCritDamageResult
             };
         }
 
+
+
+        function calculateDamageFromFormula(formula, totalATK, multiplier, bonusDamage, enemyResistance, characterLevel, enemyLevel) {
+            return eval(formula);
+        }
     </script>
 </body>
 </html>

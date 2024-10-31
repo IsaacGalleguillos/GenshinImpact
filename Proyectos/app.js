@@ -78,33 +78,62 @@ app.get('/api/uid/:uid', async (req, res) => {
   }
 });
 
+
 // Ruta para obtener los ataques básicos de un personaje
-app.get('/basicos/:id_personaje', async (req, res) => {
+app.get('/basicos/:id_personaje/:id_ataque', async (req, res) => {
   const idPersonaje = req.params.id_personaje;
+  const idAtaque = req.params.id_ataque; // Obtener el id del ataque
   const attackLevel = req.query.level; // Obtener el nivel del ataque desde los parámetros de la consulta
 
   try {
-    // Modificar la consulta para filtrar por nivel si se proporciona
     let query = `
       SELECT attack_name, formula, multiplier, nivel
       FROM basicos
-      WHERE id_personaje = $1
+      WHERE id_personaje = $1 AND id_basico = $2
     `;
     
-    const queryParams = [idPersonaje];
+    const queryParams = [idPersonaje, idAtaque];
 
     if (attackLevel) {
-      query += ' AND nivel = $2';
-      queryParams.push(attackLevel); // Agregar el nivel a los parámetros de la consulta
+      query += ' AND nivel = $3';
+      queryParams.push(attackLevel);
     }
 
-    const result = await pool.query(query, queryParams); // pool en lugar de db
-    res.json(result.rows); // Accedemos a .rows para obtener los datos
+    const result = await pool.query(query, queryParams);
+    res.json(result.rows);
   } catch (error) {
     console.error("Error al obtener datos de los ataques básicos:", error);
     res.status(500).send('Error al obtener datos de los ataques básicos');
   }
 });
+app.get('/elemental/:id_personaje/:id_ataque', async (req, res) => {
+  const idPersonaje = req.params.id_personaje;
+  const idAtaque = req.params.id_ataque; // Obtener el id del ataque elemental
+  const attackLevel = req.query.level; // Obtener el nivel del ataque desde los parámetros de la consulta
+
+  try {
+    let query = `
+      SELECT attack_name, formula, multiplier, nivel
+      FROM elemental
+      WHERE id_personaje = $1 AND id_elemental = $2
+    `;
+    
+    const queryParams = [idPersonaje, idAtaque];
+
+    if (attackLevel) {
+      query += ' AND nivel = $3';
+      queryParams.push(attackLevel);
+    }
+
+    const result = await pool.query(query, queryParams);
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error al obtener datos de los ataques elementales:", error);
+    res.status(500).send('Error al obtener datos de los ataques elementales');
+  }
+});
+
+
 
 
 // Iniciar el proxy cors-anywhere
