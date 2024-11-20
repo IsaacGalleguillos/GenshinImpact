@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            background-image: url('https://static1-es.millenium.gg/articles/4/32/88/4/@/152582-rito-de-la-linterna-article_cover_bd-1.jpg');
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-container {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            width: 280px;
+            text-align: center;
+        }
+        .login-container h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .login-container input[type="text"], 
+        .login-container input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .login-container button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .login-container button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <input type="text" id="uid" placeholder="Usuario" required>
+            <input type="password" id="password" placeholder="Contrasena" required>
+            <button type="submit">Iniciar Sesión</button>
+        </form>
+        <p id="loginError" style="color: red; display: none;">Error de login</p>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const uid = document.getElementById('uid').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ uid: uid, contrasena: password })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Login exitoso, obtener datos de Enka
+                    obtenerDatosEnka(uid);  // uid se usa para obtener los datos de Enka
+                    window.location.href = 'PersonajesUsuario.html'; // Redirigir al usuario
+                } else {
+                    // Mostrar mensaje de error
+                    document.getElementById('loginError').textContent = result.error || 'Error de login';
+                    document.getElementById('loginError').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('loginError').textContent = 'Error al conectar con el servidor';
+                document.getElementById('loginError').style.display = 'block';
+            }
+        });
+
+        // Función para obtener los datos de Enka utilizando el proxy cors-anywhere
+        async function obtenerDatosEnka(uid) {
+            const apiUrl = `http://localhost:8080/https://enka.network/api/uid/${uid}?info/AvatarInfoList`;
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    headers: {
+                        'origin': 'http://localhost:3000',  // Encabezados esperados para la solicitud
+                        'x-requested-with': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error en la solicitud a Enka: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log(data);  // Aquí puedes procesar y mostrar los datos obtenidos de Enka
+            } catch (error) {
+                console.error('Error obteniendo datos desde Enka:', error);
+            }
+        }
+    </script>
+</body>
+</html>

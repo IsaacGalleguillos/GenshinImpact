@@ -134,11 +134,17 @@
                         const flatATK = Number(stats["5"]) || 0;    
                         const percentATK = Number(stats["6"]) || 0;  
 
+                        const baseHP = Number(stats["1"]) || 0;  
+                        const flatHP = Number(stats["2"]) || 0;  
+                        const percentHP = Number(stats["3"]) || 0;  
+                        const totalHP = baseHP * (1 + percentHP) + flatHP;
+                        console.log(`Total ATK: ${totalHP}`); 
                         const totalATK = baseATK * (1 + percentATK) + flatATK;  
                         console.log(`Total ATK: ${totalATK}`); 
 
-                        calculateBasicAttacks(character, totalATK, stats);
+                        calculateBasicAttacks(character, totalATK,totalHP, stats);
                         calculateElementalSkill(character, totalATK, stats);
+                        calculateUltimateSkill(character, totalATK, stats);
                     } else {
                         document.getElementById('characterInfo').innerHTML = "<p>El personaje no está presente en el perfil del jugador.</p>";
                     }
@@ -178,25 +184,41 @@
             document.getElementById('characterInfo').innerHTML = info;
         }
 
-        function calculateBasicAttacks(character, totalATK, stats) {
+        function calculateBasicAttacks(character, totalATK,totalHP, stats) {
             const characterLevel = (stats["4001"] && stats["4001"].val) ? stats["4001"].val : 90; 
 
-            const skillLevelMap = character.skillLevelMap; 
-            const skillLevel = skillLevelMap["10731"]; 
+            // const skillLevelMap = character.skillLevelMap; 
+            // const skillLevel = skillLevelMap["10731"]; 
+            let firstKey = null;
+            let firstSkillLevel = 0;
+            const skillLevelMap = character.skillLevelMap;
+            let keys = Object.keys(skillLevelMap); // Obtener las claves del objeto
             
-            if (skillLevel === undefined) {
+            // Asegúrate de que hay al menos dos claves
+            if (keys.length > 1) {
+                firstKey = keys[0]; // Obtener la segunda clave
+                firstSkillLevel = skillLevelMap[firstKey]; // Acceder al segundo nivel de habilidad
+                
+                // Aquí puedes usar secondSkillLevel como quieras
+                console.log(firstSkillLevel); // Muestra el segundo skill level
+            } else {
+                console.error("No hay suficientes niveles de habilidad disponibles.");
+            }
+
+            
+            if (firstSkillLevel === undefined) {
                 console.error('Nivel de habilidad no encontrado para 10731.');
                 return; 
             }
 
-            fetch(`http://localhost:3000/basicos/${character.avatarId}/10731?level=${skillLevel}`)
+            fetch(`http://localhost:3000/basicos/${character.avatarId}/${firstKey}?level=${firstSkillLevel}`)
                 .then(response => response.json())
                 .then(attacks => {
                     const bonusDamage = stats["43"] || 0; 
                     const critRate = stats["20"] || 0; 
                     const critDamage = stats["22"] || 0; 
                     const enemyResistance = 10; 
-                    const enemyLevel = 82; 
+                    const enemyLevel = 92; 
 
                     let attackResults = '';
 
@@ -207,7 +229,7 @@
                             return;
                         }
 
-                        const damageResult = calculateDamage(totalATK, multiplier, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel, attack.formula);
+                        const damageResult = calculateDamage(totalATK,totalHP, multiplier, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel, attack.formula);
 
 
                         attackResults += `<p>${attack.attack_name}: ${damageResult.normal} / Crítico: ${damageResult.crit}</p>`;
@@ -255,7 +277,7 @@
                     const maestria = stats["28"] || 0; 
                     const critDamage = stats["22"] || 0; 
                     const enemyResistance = 10; 
-                    const enemyLevel = 82; 
+                    const enemyLevel = 92; 
 
                     console.log(`bonusDamage: ${bonusDamage}, critRate: ${critRate}, critDamage: ${critDamage}`);
 
@@ -283,12 +305,72 @@
                 });
         }
 
+        function calculateUltimateSkill(character, totalATK, stats) {
+            const characterLevel = (stats["4001"] && stats["4001"].val) ? stats["4001"].val : 90; 
+            let thirdSkillLevel = 0;
+            const skillLevelMap = character.skillLevelMap;
+            let keys = Object.keys(skillLevelMap); // Obtener las claves del objeto
+            
+            // Asegúrate de que hay al menos tres claves
+            if (keys.length > 2) {
+                const thirdKey = keys[2]; // Obtener la tercera clave
+                thirdSkillLevel = skillLevelMap[thirdKey]; // Acceder al tercer nivel de habilidad
+                
+                // Aquí puedes usar thirdSkillLevel como quieras
+                console.log(thirdSkillLevel); // Muestra el tercer skill level
+            } else {
+                console.error("No hay suficientes niveles de habilidad disponibles.");
+            }
 
-        function calculateDamage(totalATK, multiplier, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel, formula) {
+            if (thirdSkillLevel === undefined) {
+                console.error('Nivel de habilidad no encontrado para la definitiva.');
+                return; 
+            }
+
+            console.log(`Calculando daño para habilidad definitiva, skillLevel: ${thirdSkillLevel}`);
+
+            fetch(`http://localhost:3000/ultimate/${character.avatarId}/${keys[2]}?level=${thirdSkillLevel}`)
+                .then(response => response.json())
+                .then(attacks => {
+                    const bonusDamage = stats["43"] || 0; 
+                    const critRate = stats["20"] || 0; 
+                    const critDamage = stats["22"] || 0; 
+                    const maestria = stats["28"] || 0; 
+                    const enemyResistance = 10; 
+                    const enemyLevel = 82; 
+
+                    console.log(`bonusDamage: ${bonusDamage}, critRate: ${critRate}, critDamage: ${critDamage}`);
+
+                    let attackResults = '';
+
+                    attacks.forEach(attack => {
+                        const multiplier = parseFloat(attack.multiplier); 
+                        if (isNaN(multiplier)) {
+                            console.error(`Multiplicador inválido para el ataque ${attack.attack_name}: ${attack.multiplier}`);
+                            return;
+                        }
+
+                        const damageResult = calculateDamagenahida(totalATK, multiplier, maestria, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel, attack.formula);
+
+                        attackResults += `<p>${attack.attack_name}: ${damageResult.normal} / Crítico: ${damageResult.crit}</p>`;
+                    });
+
+                    document.getElementById('ultimateSkill').innerHTML = `
+                        <h2>Habilidad Definitiva</h2>
+                        ${attackResults}
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error al obtener los multiplicadores de la habilidad definitiva:', error);
+                });
+        }
+
+        function calculateDamage(totalATK,totalHP, multiplier, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel, formula) {
             // Reemplaza las variables en la fórmula con sus valores correspondientes
             const evalFormula = formula
                 .replace(/totalATK/g, totalATK)
                 .replace(/multiplier/g, multiplier)
+                .replace(/totalHP/g, totalHP)
                 .replace(/bonusDamage/g, bonusDamage)
                 .replace(/enemyResistance/g, enemyResistance)
                 .replace(/characterLevel/g, characterLevel)

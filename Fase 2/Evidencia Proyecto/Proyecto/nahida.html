@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Información de Personaje</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('https://static1-es.millenium.gg/articles/4/32/88/4/@/152582-rito-de-la-linterna-article_cover_bd-1.jpg');
+            background-size: cover;
+            color: white;
+        }
+        .menu {
+            background-color: #2c3e50;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .menu a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 18px;
+        }
+        .menu a:hover {
+            color: #e74c3c;
+        }
+        .container {
+            margin: 50px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            display: flex;
+        }
+        .stats {
+            flex: 1;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+            margin-right: 20px;
+        }
+        .attacks {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            width: 600px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            margin-right: 10px;
+            border-radius: 5px;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .content {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu">
+        <a href="personajes.html">Personajes</a>
+        <a href="PersonajesUsuario.html">Mis personajes</a>
+        <a href="calculomanual.html">Calculadora</a>
+    </div>
+    <div class="container">
+        <div class="content">
+            <h1>Información del Personaje</h1>
+            <form id="uidForm">
+                <label for="uid">Ingrese UID del jugador:</label>
+                <input type="text" id="uid" name="uid" required>
+                <input type="submit" value="Obtener Información">
+            </form>
+        
+            <div id="characterInfo" class="stats">
+                <!-- La información del personaje se mostrará aquí -->
+            </div>
+        </div>
+        <div class="content">
+            <div id="basicAttacks" class="attacks">
+                <h2>Ataque Básico</h2>
+            </div>
+            <div id="elementalSkill" class="attacks">
+                <h2>Habilidad Elemental</h2>
+            </div>
+            <div id="ultimateSkill" class="attacks">
+                <h2>Habilidad Definitiva</h2>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const characterId = urlParams.get('id'); 
+
+        window.onload = function() {
+            const storedUID = localStorage.getItem('genshinUID');
+            if (storedUID) {
+                document.getElementById('uid').value = storedUID; 
+                fetchCharacterData(storedUID); 
+            }
+        };
+
+        document.getElementById('uidForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const uid = document.getElementById('uid').value;
+            fetchCharacterData(uid);
+            localStorage.setItem('genshinUID', uid);
+        });
+
+        function fetchCharacterData(uid) {
+            fetch(`http://localhost:8080/https://enka.network/api/uid/${uid}`)
+                .then(response => response.json())
+                .then(data => {
+                    const character = data.avatarInfoList.find(avatar => avatar.avatarId === parseInt(characterId));
+                    if (character) {
+                        displayCharacterInfo(character);
+                        const stats = character.fightPropMap;
+
+                        const baseATK = Number(stats["4"]) || 0;   
+                        const flatATK = Number(stats["5"]) || 0;    
+                        const percentATK = Number(stats["6"]) || 0;  
+
+                        const baseHP = Number(stats["1"]) || 0;  
+                        const flatHP = Number(stats["2"]) || 0;  
+                        const percentHP = Number(stats["3"]) || 0;  
+                        const totalHP = baseHP * (1 + percentHP) + flatHP;
+                        console.log(`Total ATK: ${totalHP}`); 
+                        const totalATK = baseATK * (1 + percentATK) + flatATK;  
+                        console.log(`Total ATK: ${totalATK}`); 
+
+                        calculateBasicAttacks(character, totalATK,totalHP, stats);
+                        calculateElementalSkill(character, totalATK, stats);
+                        calculateUltimateSkill(character, totalATK, stats);
+                    } else {
+                        document.getElementById('characterInfo').innerHTML = "<p>El personaje no está presente en el perfil del jugador.</p>";
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al obtener los datos:', error);
+                    document.getElementById('characterInfo').innerHTML = "<p>Error al obtener los datos.</p>";
+                });
+        }
+
+        function displayCharacterInfo(character) {
+            const stats = character.fightPropMap;
+
+            const baseHP = stats["1"];
+            const flatHP = stats["2"];
+            const percentHP = stats["3"];
+            const totalHP = baseHP * (1 + percentHP) + flatHP;
+
+            const baseATK = stats["4"];
+            const flatATK = stats["5"];
+            const percentATK = stats["6"];
+            const totalATK = baseATK * (1 + percentATK) + flatATK;
+
+            const characterLevel = (stats["4001"] && stats["4001"].val) ? stats["4001"].val : 1; 
+            
+            const info = `
+                <h2>Nivel ${character.propMap["4001"].val}</h2>
+                <p><strong>Vida Total:</strong> ${totalHP.toFixed(2)}</p>
+                <p><strong>Ataque Total:</strong> ${totalATK.toFixed(2)}</p>
+                <p><strong>Defensa:</strong> ${stats["7"]}</p>
+                <p><strong>Maestría Elemental:</strong> ${stats["28"]}</p>
+                <p><strong>Probabilidad Crítica:</strong> ${(stats["20"] * 100).toFixed(2)}%</p>
+                <p><strong>Daño Crítico:</strong> ${(stats["22"] * 100).toFixed(2)}%</p>
+                <p><strong>Bono de Daño Elemental:</strong> ${(stats["43"] * 100).toFixed(2)}%</p>
+                <p><strong>Recarga de Energía:</strong> ${(stats["23"] * 100).toFixed(2)}%</p>
+            `;
+            document.getElementById('characterInfo').innerHTML = info;
+        }
+
+        function calculateBasicAttacks(character, totalATK,totalHP, stats) {
+            const characterLevel = (stats["4001"] && stats["4001"].val) ? stats["4001"].val : 90; 
+
+            // const skillLevelMap = character.skillLevelMap; 
+            // const skillLevel = skillLevelMap["10731"]; 
+            let firstKey = null;
+            let firstSkillLevel = 0;
+            const skillLevelMap = character.skillLevelMap;
+            let keys = Object.keys(skillLevelMap); // Obtener las claves del objeto
+            
+            // Asegúrate de que hay al menos dos claves
+            if (keys.length > 1) {
+                firstKey = keys[0]; // Obtener la segunda clave
+                firstSkillLevel = skillLevelMap[firstKey]; // Acceder al segundo nivel de habilidad
+                
+                // Aquí puedes usar secondSkillLevel como quieras
+                console.log(firstSkillLevel); // Muestra el segundo skill level
+            } else {
+                console.error("No hay suficientes niveles de habilidad disponibles.");
+            }
+
+            
+            if (firstSkillLevel === undefined) {
+                console.error('Nivel de habilidad no encontrado para 10731.');
+                return; 
+            }
+
+            fetch(`http://localhost:3000/basicos/${character.avatarId}/${firstKey}?level=${firstSkillLevel}`)
+                .then(response => response.json())
+                .then(attacks => {
+                    const bonusDamage = stats["43"] || 0; 
+                    const critRate = stats["20"] || 0; 
+                    const critDamage = stats["22"] || 0; 
+                    const enemyResistance = 10; 
+                    const enemyLevel = 92; 
+
+                    let attackResults = '';
+
+                    attacks.forEach(attack => {
+                        const multiplier = parseFloat(attack.multiplier); 
+                        if (isNaN(multiplier)) {
+                            console.error(`Multiplicador inválido para el ataque ${attack.attack_name}: ${attack.multiplier}`);
+                            return;
+                        }
+
+                        const damageResult = calculateDamage(totalATK,totalHP, multiplier, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel, attack.formula);
+
+
+                        attackResults += `<p>${attack.attack_name}: ${damageResult.normal} / Crítico: ${damageResult.crit}</p>`;
+                    });
+
+                    document.getElementById('basicAttacks').innerHTML = `
+                        <h2>Ataques Básicos</h2>
+                        ${attackResults}
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error al obtener los multiplicadores:', error);
+                });
+        }
+
+        function calculateElementalSkill(character, totalATK, stats) {
+            const characterLevel = (stats["4001"] && stats["4001"].val) ? stats["4001"].val : 90; 
+            let secondSkillLevel = 0;
+            const skillLevelMap = character.skillLevelMap;
+            let keys = Object.keys(skillLevelMap); // Obtener las claves del objeto
+            
+            // Asegúrate de que hay al menos dos claves
+            if (keys.length > 1) {
+                const secondKey = keys[1]; // Obtener la segunda clave
+                secondSkillLevel = skillLevelMap[secondKey]; // Acceder al segundo nivel de habilidad
+                
+                // Aquí puedes usar secondSkillLevel como quieras
+                console.log(secondSkillLevel); // Muestra el segundo skill level
+            } else {
+                console.error("No hay suficientes niveles de habilidad disponibles.");
+            }
+
+            if (secondSkillLevel === undefined) {
+                console.error('Nivel de habilidad no encontrado para 10732.');
+                return; 
+            }
+
+            console.log(`Calculando daño para habilidad elemental, skillLevel: ${secondSkillLevel}`);
+
+            fetch(`http://localhost:3000/elemental/${character.avatarId}/10732?level=${secondSkillLevel}`)
+                .then(response => response.json())
+                .then(attacks => {
+                    const bonusDamage = stats["43"] || 0; 
+                    const critRate = stats["20"] || 0; 
+                    const maestria = stats["28"] || 0; 
+                    const critDamage = stats["22"] || 0; 
+                    const enemyResistance = 10; 
+                    const enemyLevel = 92; 
+
+                    console.log(`bonusDamage: ${bonusDamage}, critRate: ${critRate}, critDamage: ${critDamage}`);
+
+                    let attackResults = '';
+
+                    attacks.forEach(attack => {
+                        const multiplier = parseFloat(attack.multiplier); 
+                        if (isNaN(multiplier)) {
+                            console.error(`Multiplicador inválido para el ataque ${attack.attack_name}: ${attack.multiplier}`);
+                            return;
+                        }
+
+                        const damageResult = calculateDamagenahida(totalATK, multiplier,maestria, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel, attack.formula);
+
+                        attackResults += `<p>${attack.attack_name}: ${damageResult.normal} / Crítico: ${damageResult.crit}</p>`;
+                    });
+
+                    document.getElementById('elementalSkill').innerHTML = `
+                        <h2>Habilidad Elemental</h2>
+                        ${attackResults}
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error al obtener los multiplicadores de la habilidad elemental:', error);
+                });
+        }
+
+        function calculateUltimateSkill(character, totalATK, stats) {
+            const characterLevel = (stats["4001"] && stats["4001"].val) ? stats["4001"].val : 90; 
+            let thirdSkillLevel = 0;
+            const skillLevelMap = character.skillLevelMap;
+            let keys = Object.keys(skillLevelMap); // Obtener las claves del objeto
+            
+            // Asegúrate de que hay al menos tres claves
+            if (keys.length > 2) {
+                const thirdKey = keys[2]; // Obtener la tercera clave
+                thirdSkillLevel = skillLevelMap[thirdKey]; // Acceder al tercer nivel de habilidad
+                
+                // Aquí puedes usar thirdSkillLevel como quieras
+                console.log(thirdSkillLevel); // Muestra el tercer skill level
+            } else {
+                console.error("No hay suficientes niveles de habilidad disponibles.");
+            }
+
+            if (thirdSkillLevel === undefined) {
+                console.error('Nivel de habilidad no encontrado para la definitiva.');
+                return; 
+            }
+
+            console.log(`Calculando daño para habilidad definitiva, skillLevel: ${thirdSkillLevel}`);
+
+            fetch(`http://localhost:3000/ultimate/${character.avatarId}/${keys[2]}?level=${thirdSkillLevel}`)
+                .then(response => response.json())
+                .then(attacks => {
+                    const bonusDamage = stats["43"] || 0; 
+                    const critRate = stats["20"] || 0; 
+                    const critDamage = stats["22"] || 0; 
+                    const maestria = stats["28"] || 0; 
+                    const enemyResistance = 10; 
+                    const enemyLevel = 82; 
+
+                    console.log(`bonusDamage: ${bonusDamage}, critRate: ${critRate}, critDamage: ${critDamage}`);
+
+                    let attackResults = '';
+
+                    attacks.forEach(attack => {
+                        const multiplier = parseFloat(attack.multiplier); 
+                        if (isNaN(multiplier)) {
+                            console.error(`Multiplicador inválido para el ataque ${attack.attack_name}: ${attack.multiplier}`);
+                            return;
+                        }
+
+                        const damageResult = calculateDamagenahida(totalATK, multiplier, maestria, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel, attack.formula);
+
+                        attackResults += `<p>${attack.attack_name}: ${damageResult.normal} / Crítico: ${damageResult.crit}</p>`;
+                    });
+
+                    document.getElementById('ultimateSkill').innerHTML = `
+                        <h2>Habilidad Definitiva</h2>
+                        ${attackResults}
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error al obtener los multiplicadores de la habilidad definitiva:', error);
+                });
+        }
+
+        function calculateDamage(totalATK,totalHP, multiplier, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel, formula) {
+            // Reemplaza las variables en la fórmula con sus valores correspondientes
+            const evalFormula = formula
+                .replace(/totalATK/g, totalATK)
+                .replace(/multiplier/g, multiplier)
+                .replace(/totalHP/g, totalHP)
+                .replace(/bonusDamage/g, bonusDamage)
+                .replace(/enemyResistance/g, enemyResistance)
+                .replace(/characterLevel/g, characterLevel)
+                .replace(/enemyLevel/g, enemyLevel);
+
+            // Evalúa la fórmula
+            const damage = eval(evalFormula);
+
+            //console.log(`Fórmula: ${evalFormula}`);
+            //console.log(`Total ATK: ${totalATK}, Multiplier: ${multiplier}, Bonus Damage: ${bonusDamage}, Enemy Resistance: ${enemyResistance}, Character Level: ${characterLevel}, Enemy Level: ${enemyLevel}`);
+            
+            const normalDamage = Math.max(0, damage);
+            const critMultiplier = 1 + critDamage;
+            const critDamageResult = Math.max(0, normalDamage * critMultiplier);
+            const roundedNormalDamage = Math.round(normalDamage);
+            const roundedCritDamageResult = Math.round(critDamageResult);
+            
+            return {
+                normal: roundedNormalDamage,
+                crit: roundedCritDamageResult
+            };
+        }
+        function calculateDamagenahida(totalATK, multiplier,maestria, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel, formula) {
+            // Reemplaza las variables en la fórmula con sus valores correspondientes
+            const evalFormula = formula
+                .replace(/totalATK/g, totalATK)
+                .replace(/multiplier/g, multiplier)
+                .replace(/maestria/g, maestria)
+                .replace(/bonusDamage/g, bonusDamage)
+                .replace(/enemyResistance/g, enemyResistance)
+                .replace(/characterLevel/g, characterLevel)
+                .replace(/enemyLevel/g, enemyLevel);
+
+            // Evalúa la fórmula
+            const damage = eval(evalFormula);
+
+            //console.log(`Fórmula: ${evalFormula}`);
+            //console.log(`Total ATK: ${totalATK}, Multiplier: ${multiplier}, Bonus Damage: ${bonusDamage}, Enemy Resistance: ${enemyResistance}, Character Level: ${characterLevel}, Enemy Level: ${enemyLevel}`);
+            
+            const normalDamage = Math.max(0, damage);
+            const critMultiplier = 1 + critDamage;
+            const critDamageResult = Math.max(0, normalDamage * critMultiplier);
+            const roundedNormalDamage = Math.round(normalDamage);
+            const roundedCritDamageResult = Math.round(critDamageResult);
+            
+            return {
+                normal: roundedNormalDamage,
+                crit: roundedCritDamageResult
+            };
+        }
+
+
+
+        function calculateDamageFromFormula(formula, totalATK, multiplier, bonusDamage, enemyResistance, characterLevel, enemyLevel) {
+            return eval(formula);
+        }
+    </script>
+</body>
+</html>

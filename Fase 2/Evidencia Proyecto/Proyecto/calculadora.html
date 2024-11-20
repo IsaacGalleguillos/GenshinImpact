@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Daño - Navia</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .button-container button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .button-container button:hover {
+            background-color: #45a049;
+        }
+        .back-button {
+            background-color: #1E90FF;
+        }
+        input[type="number"] {
+            padding: 8px;
+            margin: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 80px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Calculadora de Daño - Navia</h1>
+
+
+        <div class="button-container">
+            <button class="back-button" onclick="window.location.href='personajes.html'">Volver a la Página Principal</button>
+            <button onclick="window.location.href='navia.html'">Volver a Navia</button>
+        </div>
+
+        <p>Ingresa los siguientes valores para calcular el daño de Navia:</p>
+
+        <form id="damage-calculator">
+            <label for="attack">Ataque:</label>
+            <input type="number" id="attack" name="attack" placeholder="Ataque" required>
+
+            <label for="skill-level">Nivel de Habilidad:</label>
+            <input type="number" id="skill-level" name="skill-level" min="1" max="10" placeholder="1-10" required>
+
+            <button type="submit">Calcular</button>
+        </form>
+
+        <h2>Resultado</h2>
+        <p id="result">El daño se mostrará aquí.</p>
+
+    </div>
+
+    <script>
+        document.getElementById('damage-calculator').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // Obtenemos los valores de los inputs
+            const attack = document.getElementById('attack').value;
+            const skillLevel = document.getElementById('skill-level').value;
+
+            // Simulación de cálculo básico de daño
+            const baseDamage = 100;  // Simulación de base de daño de la habilidad
+            const damage = attack * (baseDamage + (skillLevel * 10));  // Cálculo de daño ficticio
+
+            // Mostramos el resultado
+            document.getElementById('result').textContent = `El daño calculado es: ${damage}`;
+        });
+    </script>
+</body>
+</html>

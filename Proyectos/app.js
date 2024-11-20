@@ -133,6 +133,32 @@ app.get('/elemental/:id_personaje/:id_ataque', async (req, res) => {
   }
 });
 
+app.get('/definitiva/:id_personaje/:id_ataque', async (req, res) => {
+  const idPersonaje = req.params.id_personaje;
+  const idAtaque = req.params.id_ataque; // Obtener el id del ataque definitivo
+  const attackLevel = req.query.level; // Obtener el nivel del ataque desde los parámetros de la consulta
+
+  try {
+    let query = `
+      SELECT attack_name, formula, multiplier, nivel
+      FROM definitivas
+      WHERE id_personaje = $1 AND id_definitiva = $2
+    `;
+    
+    const queryParams = [idPersonaje, idAtaque];
+
+    if (attackLevel) {
+      query += ' AND nivel = $3';
+      queryParams.push(attackLevel);
+    }
+
+    const result = await pool.query(query, queryParams);
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error al obtener datos de los ataques definitivos:", error);
+    res.status(500).send('Error al obtener datos de los ataques definitivos');
+  }
+});
 
 
 
