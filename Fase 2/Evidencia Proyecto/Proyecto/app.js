@@ -78,6 +78,56 @@ app.get('/api/uid/:uid', async (req, res) => {
   }
 });
 
+// Ruta para obtener la lista de personajes con filtro de elemento
+app.get('/api/personajes', async (req, res) => {
+  try {
+    const { elemento } = req.query; // Obtenemos el filtro de elemento desde la consulta
+    let query = `
+      SELECT uid, api, "real", imagen_menu, imagen_personaje, elemento, tipo_arma
+      FROM public.personajes
+    `;
+
+    // Si se proporciona un filtro de elemento, lo agregamos a la consulta
+    if (elemento) {
+      query += ` WHERE elemento = $1`;
+      const result = await pool.query(query, [elemento]);
+      return res.json(result.rows);
+    }
+
+    // Si no hay filtro, devolvemos todos los personajes
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error al obtener la lista de personajes:', error);
+    res.status(500).json({ error: 'Error al obtener la lista de personajes' });
+  }
+});
+
+app.get('/basicos/:id_personaje', async (req, res) => {
+  const idPersonaje = req.params.id_personaje;
+  const attackLevel = req.query.level; // Obtener el nivel del ataque desde los parámetros de la consulta
+
+  try {
+      let query = `
+          SELECT attack_name, formula, multiplier, nivel
+          FROM basicos
+          WHERE id_personaje = $1
+      `;
+      
+      const queryParams = [idPersonaje];
+
+      if (attackLevel) {
+          query += ' AND nivel = $2';
+          queryParams.push(attackLevel);
+      }
+
+      const result = await pool.query(query, queryParams);
+      res.json(result.rows);
+  } catch (error) {
+      console.error("Error al obtener datos de los ataques básicos:", error);
+      res.status(500).send('Error al obtener datos de los ataques básicos');
+  }
+});
 
 // Ruta para obtener los ataques básicos de un personaje
 app.get('/basicos/:id_personaje/:id_ataque', async (req, res) => {
@@ -106,6 +156,9 @@ app.get('/basicos/:id_personaje/:id_ataque', async (req, res) => {
     res.status(500).send('Error al obtener datos de los ataques básicos');
   }
 });
+
+// Rutas similares para ataques elementales y definitivos
+
 app.get('/elemental/:id_personaje/:id_ataque', async (req, res) => {
   const idPersonaje = req.params.id_personaje;
   const idAtaque = req.params.id_ataque; // Obtener el id del ataque elemental
@@ -159,8 +212,6 @@ app.get('/definitiva/:id_personaje/:id_ataque', async (req, res) => {
     res.status(500).send('Error al obtener datos de los ataques definitivos');
   }
 });
-
-
 
 // Iniciar el proxy cors-anywhere
 cors_proxy.createServer({

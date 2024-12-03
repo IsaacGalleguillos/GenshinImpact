@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Navia - Genshin Impact</title>
+    <title>Genshin Impact - Información del Personaje</title>
     <style>
         body {
             background-image: url('https://static1-es.millenium.gg/articles/4/32/88/4/@/152582-rito-de-la-linterna-article_cover_bd-1.jpg');
@@ -16,6 +16,33 @@
             align-items: center;
             height: 100vh;
         }
+        .navbar {
+            background-color: #2c4f94;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+        }
+
+        .navbar a {
+            float: left;
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+            font-size: 17px;
+        }
+
+        .navbar a:hover {
+            background-color: #4CAF50;
+            color: white;
+        }
         .container {
             background: rgba(255, 255, 255, 0.9);
             padding: 20px;
@@ -27,6 +54,7 @@
             text-align: center;
             overflow-y: auto; /* Añadido para hacer scroll si es necesario */
             height: 90vh; /* Controla la altura */
+            margin-top: 100px;
         }
         .container h1, .container h2 {
             color: #333;
@@ -80,10 +108,17 @@
     </style>
 </head>
 <body>
+    <div class="navbar">
+        <div class="menu-links">
+            <a href="personajes.html">Personajes</a>
+            <a href="PersonajesUsuario.html">Mis Personajes</a>
+            <a href="calculomanual.html">Calculadora</a>
+        </div>
+    </div>
     <div class="container">
         <h1 id="name">Loading...</h1>
         <div class="image">
-            <img id="character-image" src="" alt="Navia">
+            <img id="character-image" src="" alt="Imagen del personaje">
         </div>
 
         <p><strong>Visión:</strong> <span id="vision">Loading...</span></p>
@@ -120,52 +155,76 @@
     </div>
 
     <script>
-        fetch('https://genshin.jmp.blue/characters/navia')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('name').textContent = data.name + ' - ' + data.title;
-                document.getElementById('character-image').src = "https://rerollcdn.com/GENSHIN/Characters/1/Navia.png";
-                document.getElementById('vision').textContent = data.vision;
-                document.getElementById('weapon').textContent = data.weapon;
-                document.getElementById('gender').textContent = data.gender;
-                document.getElementById('nation').textContent = data.nation;
-                document.getElementById('affiliation').textContent = data.affiliation;
-                document.getElementById('rarity').textContent = data.rarity;
-                document.getElementById('release').textContent = data.release;
-                document.getElementById('constellation').textContent = data.constellation;
-                document.getElementById('birthday').textContent = data.birthday;
-                document.getElementById('description').textContent = data.description;
-
-                const skillTalents = document.getElementById('skill-talents');
-                skillTalents.innerHTML = '';
-                data.skillTalents.forEach(talent => {
-                    const div = document.createElement('div');
-                    div.className = 'skill-box';
-                    div.innerHTML = `<strong>${talent.name} (${talent.unlock}):</strong> ${talent.description}`;
-                    skillTalents.appendChild(div);
+        // Obtener el nombre del personaje desde la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const character = urlParams.get('character');
+    
+        if (!character) {
+            alert('No se proporcionó un personaje en la URL');
+        } else {
+            // Construir URL dinámica para obtener los datos del personaje
+            const apiUrl = `https://genshin.jmp.blue/characters/${character}`;
+    
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    // Actualizar contenido de la página con los datos del personaje
+                    document.getElementById('name').textContent = data.name + ' - ' + data.title;
+                    document.getElementById('character-image').src = data.image || `https://rerollcdn.com/GENSHIN/Characters/1/${character}.png`;
+                    document.getElementById('vision').textContent = data.vision;
+                    document.getElementById('weapon').textContent = data.weapon;
+                    document.getElementById('gender').textContent = data.gender;
+                    document.getElementById('nation').textContent = data.nation;
+                    document.getElementById('affiliation').textContent = data.affiliation;
+                    document.getElementById('rarity').textContent = data.rarity;
+                    document.getElementById('release').textContent = data.release;
+                    document.getElementById('constellation').textContent = data.constellation;
+    
+                    // Formatear la fecha de cumpleaños
+                    const birthday = data.birthday;
+                    const birthdayDate = new Date(birthday); // Convierte la fecha a un objeto Date
+                    const day = birthdayDate.getDate(); // Obtiene el día
+                    const month = birthdayDate.toLocaleString('es-ES', { month: 'long' }); // Obtiene el mes en formato largo
+                    document.getElementById('birthday').textContent = `${day} de ${month}`; // Muestra solo el día y el mes
+    
+                    document.getElementById('description').textContent = data.description;
+    
+                    // Talentos activos
+                    const skillTalents = document.getElementById('skill-talents');
+                    skillTalents.innerHTML = '';
+                    data.skillTalents.forEach(talent => {
+                        const div = document.createElement('div');
+                        div.className = 'skill-box';
+                        div.innerHTML = `<strong>${talent.name} (${talent.unlock}):</strong> ${talent.description}`;
+                        skillTalents.appendChild(div);
+                    });
+    
+                    // Talentos pasivos
+                    const passiveTalents = document.getElementById('passive-talents');
+                    passiveTalents.innerHTML = '';
+                    data.passiveTalents.forEach(talent => {
+                        const div = document.createElement('div');
+                        div.className = 'skill-box';
+                        div.innerHTML = `<strong>${talent.name}:</strong> ${talent.description}`;
+                        passiveTalents.appendChild(div);
+                    });
+    
+                    // Constelaciones
+                    const constellations = document.getElementById('constellations');
+                    constellations.innerHTML = '';
+                    data.constellations.forEach(constellation => {
+                        const div = document.createElement('div');
+                        div.className = 'constellation-box';
+                        div.innerHTML = `<strong>${constellation.name}:</strong> ${constellation.description}`;
+                        constellations.appendChild(div);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    alert('No se pudieron cargar los datos del personaje.');
                 });
-
-                const passiveTalents = document.getElementById('passive-talents');
-                passiveTalents.innerHTML = '';
-                data.passiveTalents.forEach(talent => {
-                    const div = document.createElement('div');
-                    div.className = 'skill-box';
-                    div.innerHTML = `<strong>${talent.name}:</strong> ${talent.description}`;
-                    passiveTalents.appendChild(div);
-                });
-
-                const constellations = document.getElementById('constellations');
-                constellations.innerHTML = '';
-                data.constellations.forEach(constellation => {
-                    const div = document.createElement('div');
-                    div.className = 'constellation-box';
-                    div.innerHTML = `<strong>${constellation.name}:</strong> ${constellation.description}`;
-                    constellations.appendChild(div);
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching data:', error);
-            });
+        }
     </script>
+    
 </body>
 </html>

@@ -158,14 +158,14 @@
         function displayCharacterInfo(character) {
             const stats = character.fightPropMap;
 
-            const baseHP = stats["1"];
-            const flatHP = stats["2"];
-            const percentHP = stats["3"];
+            const baseHP = Number(stats["1"]) || 0;  
+            const flatHP = Number(stats["2"]) || 0;  
+            const percentHP = Number(stats["3"]) || 0;  
             const totalHP = baseHP * (1 + percentHP) + flatHP;
 
-            const baseATK = stats["4"];
-            const flatATK = stats["5"];
-            const percentATK = stats["6"];
+            const baseATK = Number(stats["4"]) || 0;   
+            const flatATK = Number(stats["5"]) || 0;    
+            const percentATK = Number(stats["6"]) || 0; 
             const totalATK = baseATK * (1 + percentATK) + flatATK;
 
             const characterLevel = (stats["4001"] && stats["4001"].val) ? stats["4001"].val : 1; 
@@ -218,7 +218,7 @@
                     const critRate = stats["20"] || 0; 
                     const critDamage = stats["22"] || 0; 
                     const enemyResistance = 10; 
-                    const enemyLevel = 92; 
+                    const enemyLevel = 87; 
 
                     let attackResults = '';
 
@@ -277,7 +277,7 @@
                     const maestria = stats["28"] || 0; 
                     const critDamage = stats["22"] || 0; 
                     const enemyResistance = 10; 
-                    const enemyLevel = 92; 
+                    const enemyLevel = 87; 
 
                     console.log(`bonusDamage: ${bonusDamage}, critRate: ${critRate}, critDamage: ${critDamage}`);
 
@@ -337,7 +337,7 @@
                     const critDamage = stats["22"] || 0; 
                     const maestria = stats["28"] || 0; 
                     const enemyResistance = 10; 
-                    const enemyLevel = 82; 
+                    const enemyLevel = 87; 
 
                     console.log(`bonusDamage: ${bonusDamage}, critRate: ${critRate}, critDamage: ${critDamage}`);
 

@@ -3,91 +3,351 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Daño Genshin Impact</title>
+    <title>Calculadora de Daño - Genshin Impact</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: space-between;
-            padding: 20px;
+            background-image: url('https://static1-es.millenium.gg/articles/4/32/88/4/@/152582-rito-de-la-linterna-article_cover_bd-1.jpg');
+            background-size: cover;
+            color: white;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .calculator {
-            width: 50%;
-        }
-        .result-box {
-            width: 30%;
-            border: 2px solid #ccc;
-            padding: 20px;
+
+        .menu {
+            background-color: #2c3e50;
+            padding: 15px;
             text-align: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
         }
-        input[type="number"] {
+
+        .menu a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 18px;
+        }
+
+        .menu a:hover {
+            color: #e74c3c;
+        }
+
+        .container {
+            margin: 50px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        input {
             width: 100%;
             padding: 10px;
-            margin: 5px 0;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
-        button {
-            padding: 10px 20px;
-            margin: 10px 0;
+
+        .btn {
             background-color: #4CAF50;
             color: white;
+            padding: 10px 20px;
             border: none;
+            border-radius: 5px;
             cursor: pointer;
+            font-size: 18px;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .attacks {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            flex: 1;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+            margin-right: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="calculator">
-        <h1>Calculadora de Daño</h1>
-        <label for="atk">ATK Total:</label>
-        <input type="number" id="atk" placeholder="Ingrese ATK Total">
-        
-        <label for="multiplier">Multiplicador de Habilidad (%):</label>
-        <input type="number" id="multiplier" placeholder="Ingrese Multiplicador de Habilidad">
-
-        <label for="cargas">Bono por Cargas (%):</label>
-        <input type="number" id="cargas" placeholder="Ingrese Bono por Cargas">
-
-        <label for="geo">Bono de Daño Geo (%):</label>
-        <input type="number" id="geo" placeholder="Ingrese Bono de Daño Geo">
-
-        <label for="nivel">Reducción por Nivel:</label>
-        <input type="number" id="nivel" placeholder="Ingrese Reducción por Nivel">
-
-        <label for="resistencia">Resistencia Elemental (%):</label>
-        <input type="number" id="resistencia" placeholder="Ingrese Resistencia Elemental">
-
-        <label for="critico">Daño Crítico (%):</label>
-        <input type="number" id="critico" placeholder="Ingrese Daño Crítico">
-
-        <button onclick="calcularDanio()">Calcular Daño</button>
+    <div class="menu">
+        <a href="personajes.html">Personajes</a>
+        <a href="PersonajesUsuario.html">Mis personajes</a>
+        <a href="calculomanual.html">Calculadora</a>
     </div>
 
-    <div class="result-box">
-        <h2>Resultado</h2>
-        <p id="resultado">Daño Final: 0</p>
-    </div>
+    <div class="container">
+        <div class="content">
+            <h1>Calculadora de Daño</h1>
+            <form id="damageForm">
+                <div class="form-group">
+                    <label for="vidaTotal">Vida Total:</label>
+                    <input type="number" id="vidaTotal" required>
+                </div>
+                <div class="form-group">
+                    <label for="ataqueTotal">Ataque Total:</label>
+                    <input type="number" id="ataqueTotal" required>
+                </div>
+                <div class="form-group">
+                    <label for="defensa">Defensa:</label>
+                    <input type="number" id="defensa" required>
+                </div>
+                <div class="form-group">
+                    <label for="maestriaElemental">Maestría Elemental:</label>
+                    <input type="number" id="maestriaElemental" required>
+                </div>
+                <div class="form-group">
+                    <label for="critRate">Probabilidad Crítica (%):</label>
+                    <input type="number" id="critRate" required>
+                </div>
+                <div class="form-group">
+                    <label for="critDamage">Daño Crítico (%):</label>
+                    <input type="number" id="critDamage" required>
+                </div>
+                <div class="form-group">
+                    <label for="elementalBonus">Bono de Daño Elemental (%):</label>
+                    <input type="number" id="elementalBonus" required>
+                </div>
+                <div class="form-group">
+                    <label for="energyRecharge">Recarga de Energía (%):</label>
+                    <input type="number" id="energyRecharge" required>
+                </div>
+                <div class="form-group">
+                    <label for="characterLevel">Nivel del Personaje:</label>
+                    <input type="number" id="characterLevel" required>
+                </div>
+                <div class="form-group">
+                    <label for="basicLevel">Nivel Ataque Básico:</label>
+                    <input type="number" id="basicLevel" required>
+                </div>
+                <div class="form-group">
+                    <label for="skillLevel">Nivel Habilidad Elemental:</label>
+                    <input type="number" id="skillLevel" required>
+                </div>
+                <div class="form-group">
+                    <label for="burstLevel">Nivel Definitiva:</label>
+                    <input type="number" id="burstLevel" required>
+                </div>
+                <button type="submit" class="btn">Calcular</button>
+            </form>
+        </div>
 
+        <div class="content">
+            <div id="basicAttacks" class="attacks">
+                <h2>Ataque Básico</h2>
+            </div>
+            <div id="elementalSkill" class="attacks">
+                <h2>Habilidad Elemental</h2>
+            </div>
+            <div id="ultimateSkill" class="attacks">
+                <h2>Habilidad Definitiva</h2>
+            </div>
+        </div>
+    </div>
     <script>
-        function calcularDanio() {
-            // Obtener valores de los inputs
-            const atk = parseFloat(document.getElementById('atk').value);
-            const multiplier = parseFloat(document.getElementById('multiplier').value) / 100;
-            const cargas = parseFloat(document.getElementById('cargas').value) / 100;
-            const geo = parseFloat(document.getElementById('geo').value) / 100;
-            const nivel = parseFloat(document.getElementById('nivel').value);
-            const resistencia = parseFloat(document.getElementById('resistencia').value) / 100;
-            const critico = parseFloat(document.getElementById('critico').value) / 100;
+        const urlParams = new URLSearchParams(window.location.search);
+        const character = urlParams.get('character');
+        
+        document.getElementById('damageForm').addEventListener('submit', function (e) {
+            e.preventDefault();
 
-            // Realizar los cálculos paso a paso
-            let danioBase = atk * multiplier;
-            let danioCargas = danioBase * (1 + cargas); // Considerar el aumento del bono por cargas
-            let danioGeo = danioCargas * (1 + geo);     // Aplicar el bono de daño Geo
-            let danioNivel = danioGeo * nivel;          // Ajustar por nivel
-            let danioResistencia = danioNivel * (1 - resistencia); // Aplicar resistencia elemental
-            let danioCritico = danioResistencia * (1 + critico);   // Aplicar daño crítico
+            // Obtener valores del formulario
+            const totalHP = parseFloat(document.getElementById('vidaTotal').value);
+            const totalATK = parseFloat(document.getElementById('ataqueTotal').value);
 
-            // Mostrar el resultado
-            document.getElementById('resultado').innerHTML = "Daño Final: " + danioCritico.toFixed(2);
+            // Estadísticas que se agrupan en un objeto "stats"
+            const stats = {
+                defensa: parseFloat(document.getElementById('defensa').value),
+                maestriaElemental: parseFloat(document.getElementById('maestriaElemental').value),
+                critRate: parseFloat(document.getElementById('critRate').value),
+                critDamage: parseFloat(document.getElementById('critDamage').value),
+                elementalBonus: parseFloat(document.getElementById('elementalBonus').value),
+                energyRecharge: parseFloat(document.getElementById('energyRecharge').value),
+                characterLevel: parseInt(document.getElementById('characterLevel').value, 10),
+                basicLevel: parseInt(document.getElementById('basicLevel').value, 10),
+                skillLevel: parseInt(document.getElementById('skillLevel').value, 10),
+                burstLevel: parseInt(document.getElementById('burstLevel').value, 10)
+            };
+
+            calculateBasicAttacks(character, totalATK,totalHP, stats);
+            calculateElementalSkill(character, totalATK, stats);
+            //calculateUltimateSkill(character, totalATK, stats);
+            console.log(stats); // Añadir para verificar si los valores están siendo asignados
+
+        });
+
+        function calculateBasicAttacks(character, totalATK,totalHP, stats) {
+            const characterLevel = stats.characterLevel;
+            const firstSkillLevel = stats.basicLevel;
+            let firstKey = 10731;
+
+            fetch(`http://localhost:3000/basicos/${character}/${firstKey}?level=${firstSkillLevel}`)
+            .then(response => response.json())
+            .then(attacks => {
+                    const bonusDamage = stats.elementalBonus; 
+                    const critRate = stats.critRate; 
+                    const critDamage = stats.critDamage; 
+                    const enemyResistance = 10; 
+                    const enemyLevel = 87; 
+
+                    let attackResults = '';
+
+                    attacks.forEach(attack => {
+                        const multiplier = parseFloat(attack.multiplier); 
+                        if (isNaN(multiplier)) {
+                            console.error(`Multiplicador inválido para el ataque ${attack.attack_name}: ${attack.multiplier}`);
+                            return;
+                        }
+
+                        const damageResult = calculateDamage(totalATK,totalHP, multiplier, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel, attack.formula);
+
+
+                        attackResults += `<p>${attack.attack_name}: ${damageResult.normal} / Crítico: ${damageResult.crit}</p>`;
+                    });
+
+                    document.getElementById('basicAttacks').innerHTML = `
+                        <h2>Ataques Básicos</h2>
+                        ${attackResults}
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error al obtener los multiplicadores:', error);
+                });
+        }
+        function calculateElementalSkill(character, totalATK, stats) {
+            const characterLevel = stats.characterLevel;
+            const secondSkillLevel = stats.skillLevel;
+            let firstKey = 10732;
+
+
+            fetch(`http://localhost:3000/elemental/${character}/${firstKey}?level=${secondSkillLevel}`)
+                .then(response => response.json())
+                .then(attacks => {
+                    const bonusDamage = stats.elementalBonus;
+                    const critRate = stats.critRate; 
+                    const maestria = stats.maestriaElemental; 
+                    const critDamage = stats.critDamage; 
+                    const enemyResistance = 10; 
+                    const enemyLevel = 87; 
+
+                    console.log(`bonusDamage: ${bonusDamage}, critRate: ${critRate}, critDamage: ${critDamage}`);
+
+                    let attackResults = '';
+
+                    attacks.forEach(attack => {
+                        const multiplier = parseFloat(attack.multiplier); 
+                        if (isNaN(multiplier)) {
+                            console.error(`Multiplicador inválido para el ataque ${attack.attack_name}: ${attack.multiplier}`);
+                            return;
+                        }
+
+                        const damageResult = calculateDamagenahida(totalATK, multiplier,maestria, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel, attack.formula);
+
+                        attackResults += `<p>${attack.attack_name}: ${damageResult.normal} / Crítico: ${damageResult.crit}</p>`;
+                    });
+
+                    document.getElementById('elementalSkill').innerHTML = `
+                        <h2>Habilidad Elemental</h2>
+                        ${attackResults}
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error al obtener los multiplicadores de la habilidad elemental:', error);
+                });
+        }
+        function calculateDamage(totalATK,totalHP, multiplier, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel, formula) {
+            // Reemplaza las variables en la fórmula con sus valores correspondientes
+            const evalFormula = formula
+                .replace(/totalATK/g, totalATK)
+                .replace(/multiplier/g, multiplier)
+                .replace(/totalHP/g, totalHP)
+                .replace(/bonusDamage/g, bonusDamage)
+                .replace(/enemyResistance/g, enemyResistance)
+                .replace(/characterLevel/g, characterLevel)
+                .replace(/enemyLevel/g, enemyLevel);
+
+            // Evalúa la fórmula
+            const damage = eval(evalFormula);
+
+            //console.log(`Fórmula: ${evalFormula}`);
+            //console.log(`Total ATK: ${totalATK}, Multiplier: ${multiplier}, Bonus Damage: ${bonusDamage}, Enemy Resistance: ${enemyResistance}, Character Level: ${characterLevel}, Enemy Level: ${enemyLevel}`);
+            
+            const normalDamage = Math.max(0, damage);
+            const critMultiplier = 1 + critDamage;
+            const critDamageResult = Math.max(0, normalDamage * critMultiplier);
+            const roundedNormalDamage = Math.round(normalDamage);
+            const roundedCritDamageResult = Math.round(critDamageResult);
+            
+            return {
+                normal: roundedNormalDamage,
+                crit: roundedCritDamageResult
+            };
+        }
+        function calculateDamagenahida(totalATK, multiplier,maestria, bonusDamage, critRate, critDamage, enemyResistance, characterLevel, enemyLevel, formula) {
+            // Reemplaza las variables en la fórmula con sus valores correspondientes
+            const evalFormula = formula
+                .replace(/totalATK/g, totalATK)
+                .replace(/multiplier/g, multiplier)
+                .replace(/maestria/g, maestria)
+                .replace(/bonusDamage/g, bonusDamage)
+                .replace(/enemyResistance/g, enemyResistance)
+                .replace(/characterLevel/g, characterLevel)
+                .replace(/enemyLevel/g, enemyLevel);
+
+            // Evalúa la fórmula
+            const damage = eval(evalFormula);
+
+            //console.log(`Fórmula: ${evalFormula}`);
+            //console.log(`Total ATK: ${totalATK}, Multiplier: ${multiplier}, Bonus Damage: ${bonusDamage}, Enemy Resistance: ${enemyResistance}, Character Level: ${characterLevel}, Enemy Level: ${enemyLevel}`);
+            
+            const normalDamage = Math.max(0, damage);
+            const critMultiplier = 1 + critDamage;
+            const critDamageResult = Math.max(0, normalDamage * critMultiplier);
+            const roundedNormalDamage = Math.round(normalDamage);
+            const roundedCritDamageResult = Math.round(critDamageResult);
+            
+            return {
+                normal: roundedNormalDamage,
+                crit: roundedCritDamageResult
+            };
+        }
+        function calculateDamageFromFormula(formula, totalATK, multiplier, bonusDamage, enemyResistance, characterLevel, enemyLevel) {
+            return eval(formula);
         }
     </script>
 </body>

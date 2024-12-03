@@ -15,7 +15,6 @@
             box-sizing: border-box;
         }
 
-        /* Navbar Styles */
         .navbar {
             background-color: #2c4f94;
             overflow: hidden;
@@ -44,7 +43,6 @@
             color: white;
         }
 
-        /* Login button in the navbar */
         .login-button {
             background-color: rgba(255, 255, 255, 0.8);
             border: none;
@@ -61,9 +59,8 @@
             color: #fff;
         }
 
-        /* Main content below the navbar */
         .content {
-            padding-top: 80px; /* Space for the fixed navbar */
+            padding-top: 80px;
         }
 
         h1 {
@@ -110,7 +107,56 @@
             color: inherit;
         }
 
-        /* Responsive adjustments */
+        .custom-select {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        #element-dropdown {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            margin-top: 5px;
+        }
+
+        .element-option {
+            padding: 10px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .element-option:hover {
+            background-color: #ddd;
+        }
+
+        .element-option img {
+            display: block;
+            margin: 0 auto;
+        }
+
+        #element-filter span {
+            padding-left: 10px;
+        }
+
+        #selected-element {
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .text-overlay {
+            background-color: rgba(255, 255, 255, 0.8); /* Fondo blanco con opacidad */
+            border-radius: 10px; /* Bordes redondeados */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra */
+            padding: 20px; /* Espaciado interno */
+            margin: 20px auto; /* Centrado con márgenes */
+            max-width: 30%; /* Limitar el ancho máximo */
+            text-align: center; /* Alinear el texto */
+        }
+
+
         @media (max-width: 768px) {
             .characters {
                 flex-direction: column;
@@ -135,47 +181,121 @@
         <div class="menu-links">
             <a href="personajes.html">Personajes</a>
             <a href="PersonajesUsuario.html">Mis Personajes</a>
-            <a href="calculomanual.html">Calculadora</a>
-            <a href="wiki.html">Wiki</a>
+            <a href="calculadora.html">Calculadora</a>
         </div>
         <button class="login-button" onclick="window.location.href='login.html'">Login</button>
     </div>
 
     <div class="content">
         <h1>Genshin Impact - Personajes</h1>
-        <div class="characters">
-            <!-- Razor -->
-            <div class="character-card">
-                <a href="razor.html">
-                    <img src="https://rerollcdn.com/GENSHIN/Characters/1/Razor.png" alt="Razor">
-                    <h2>Razor</h2>
-                </a>
-            </div>
-
-            <!-- Albedo -->
-            <div class="character-card">
-                <a href="albedo.html">
-                    <img src="https://rerollcdn.com/GENSHIN/Characters/1/Albedo.png" alt="Albedo">
-                    <h2>Albedo</h2>
-                </a>
-            </div>
-
-            <!-- Ayaka -->
-            <div class="character-card">
-                <a href="ayaka.html">
-                    <img src="https://rerollcdn.com/GENSHIN/Characters/1/Ayaka.png" alt="Ayaka">
-                    <h2>Ayaka</h2>
-                </a>
-            </div>
-
-            <!-- Navia -->
-            <div class="character-card">
-                <a href="navia.html">
-                    <img src="https://rerollcdn.com/GENSHIN/Characters/1/Navia.png" alt="Navia">
-                    <h2>Navia</h2>
-                </a>
+        <div class="text-overlay">
+            <div style="text-align: center; margin: 20px;">
+                <label for="element-filter">Filtrar por elemento:</label>
+                <div id="element-filter" class="custom-select" onclick="toggleDropdown()">
+                    <span id="selected-element-text">Seleccionar Elemento</span>
+                    <img id="selected-element" src="" alt="" style="display:none; width: 30px; height: 30px; vertical-align: middle;">
+                    <div id="element-dropdown" class="dropdown-content">
+                        <div class="element-option" onclick="filterCharacters('', this)">
+                            <span>Todos</span>
+                        </div>
+                        <div class="element-option" onclick="filterCharacters('pyro', this)">
+                            <img src="https://rerollcdn.com/GENSHIN/UI/element_pyro.png" alt="Pyro" width="30" height="30">
+                        </div>
+                        <div class="element-option" onclick="filterCharacters('hydro', this)">
+                            <img src="https://rerollcdn.com/GENSHIN/UI/element_hydro.png" alt="Hydro" width="30" height="30">
+                        </div>
+                        <div class="element-option" onclick="filterCharacters('electro', this)">
+                            <img src="https://rerollcdn.com/GENSHIN/UI/element_electro.png" alt="Electro" width="30" height="30">
+                        </div>
+                        <div class="element-option" onclick="filterCharacters('cryo', this)">
+                            <img src="https://rerollcdn.com/GENSHIN/UI/element_cryo.png" alt="Cryo" width="30" height="30">
+                        </div>
+                        <div class="element-option" onclick="filterCharacters('geo', this)">
+                            <img src="https://rerollcdn.com/GENSHIN/UI/element_geo.png" alt="Geo" width="30" height="30">
+                        </div>
+                        <div class="element-option" onclick="filterCharacters('dendro', this)">
+                            <img src="https://rerollcdn.com/GENSHIN/UI/element_dendro.png" alt="Dendro" width="30" height="30">
+                        </div>
+                        <div class="element-option" onclick="filterCharacters('anemo', this)">
+                            <img src="https://rerollcdn.com/GENSHIN/UI/element_anemo.png" alt="Anemo" width="30" height="30">
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+        <div class="characters" id="characters">
+            <!-- Los personajes se cargarán aquí dinámicamente -->
+        </div>
     </div>
+    
+
+    <script>
+        async function loadCharacters(elemento = '') {
+            try {
+                // Agrega el parámetro de filtro a la URL si es necesario
+                const url = elemento
+                    ? `http://localhost:3000/api/personajes?elemento=${encodeURIComponent(elemento)}`
+                    : 'http://localhost:3000/api/personajes';
+                console.log(`URL de API: ${url}`);
+
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('Error al cargar los personajes');
+                }
+                const characters = await response.json();
+
+                const charactersContainer = document.getElementById('characters');
+                charactersContainer.innerHTML = ''; // Limpia cualquier contenido previo
+
+                characters.forEach(character => {
+                    const characterHtml = `navia.html?character=${encodeURIComponent(character.real)}`;
+
+                    const characterCard = `
+                        <div class="character-card">
+                            <a href="${characterHtml}">
+                                <img src="${character.imagen_menu}" alt="${character.real}">
+                                <h2>${character.real}</h2>
+                            </a>
+                        </div>
+                    `;
+                    charactersContainer.innerHTML += characterCard;
+                });
+            } catch (error) {
+                console.error('Error al cargar los personajes:', error);
+            }
+        }
+
+        // Función para manejar el cambio en el filtro
+        function filterCharacters(elemento = '', element = null) {
+            loadCharacters(elemento);
+
+            // Actualizar el texto y la imagen seleccionada
+            const selectedElementText = document.getElementById('selected-element-text');
+            const selectedElement = document.getElementById('selected-element');
+
+            if (elemento === '') {
+                // Opción "Todos"
+                selectedElementText.textContent = 'Seleccionar Elemento';
+                selectedElement.style.display = 'none';
+            } else if (element) {
+                // Mostrar imagen del elemento seleccionado
+                const img = element.querySelector('img');
+                if (img) {
+                    selectedElementText.textContent = '';
+                    selectedElement.src = img.src;
+                    selectedElement.alt = img.alt;
+                    selectedElement.style.display = 'inline-block';
+                }
+            }
+        }
+
+        function toggleDropdown() {
+            const dropdown = document.getElementById('element-dropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Cargar los personajes sin filtro al inicio
+        document.addEventListener('DOMContentLoaded', () => loadCharacters());
+    </script>
 </body>
 </html>
